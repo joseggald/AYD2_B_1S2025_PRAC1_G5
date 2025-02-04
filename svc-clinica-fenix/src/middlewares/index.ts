@@ -11,9 +11,13 @@ export const initializeMiddlewares = (app: Application): void => {
   
   // CORS
   app.use(cors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: process.env.NODE_ENV === 'production' 
+      ? process.env.FRONTEND_URL  // Your production frontend URL
+      : 'http://localhost:3000',  // Your development frontend URL
+    credentials: true,  // Enable credentials
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range']
   }));
   
   // Parsers

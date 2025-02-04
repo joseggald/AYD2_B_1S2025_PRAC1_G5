@@ -19,7 +19,6 @@ export class ResponseHandler {
       status: 'success',
       message,
       data,
-      path: res.req.originalUrl
     };
 
     Logger.ok(`[${statusCode}] ${message}`);
@@ -35,8 +34,7 @@ export class ResponseHandler {
     const response: ApiResponse = {
       status: 'error',
       message,
-      data,
-      path: res.req.originalUrl
+      data
     };
 
     Logger.error(`[${statusCode}] ${message}`, data);

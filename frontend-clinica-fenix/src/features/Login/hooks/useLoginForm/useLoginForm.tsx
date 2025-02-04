@@ -47,8 +47,8 @@ export function useLoginForm() {
 
     // authenticate user
     await loginMutation.mutate({
-      username: values.userName,
-      password: values.password,
+      usuario: values.userName,
+      contrasena: values.password,
     });
   }
 
