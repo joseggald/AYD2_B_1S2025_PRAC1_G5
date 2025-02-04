@@ -9,17 +9,21 @@ const alertStore = useAlertStore.getState();
 const serviceApi = axios.create({
   baseURL: import.meta.env.VITE_API_SERVICE_URL,
   withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
 // Request interceptor to add the token to requests
 serviceApi.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    const publicAuthToken = import.meta.env.VITE_AUTH_TOKEN;
-    const { authToken, sessionToken } = useAuthStore.getState();
+    
+    const { authToken } = useAuthStore.getState();
+    if (!authToken) {
+      return config;
+    }
 
-    config.headers.Authorization = `Bearer ${authToken || publicAuthToken}`;
-    if (sessionToken) config.headers.session = sessionToken;
-
+    config.headers.Authorization = `Bearer ${authToken}`;
     return config;
   }
 );
@@ -36,7 +40,6 @@ serviceApi.interceptors.response.use(
       alertStore.setOnCloseCallback(logout);
       alertStore.openAlert();
     }
-
     return Promise.reject(error);
   }
 );

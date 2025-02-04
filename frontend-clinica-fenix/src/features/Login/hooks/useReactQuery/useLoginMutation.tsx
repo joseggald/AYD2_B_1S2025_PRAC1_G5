@@ -17,14 +17,14 @@ export const useLoginMutation = () => {
     mutationKey: QUERY_KEYS.AUTH.LOGIN,
     mutationFn: async (props: ILoginServiceProps) => await loginService(props),
     onSuccess: (response: ILoginServiceResponse) => {
-      const { authToken, sessionToken, user } = response.data;
+      const { user, token } = response.data;
 
-      setTokens({ authToken, sessionToken });
+      setTokens({ authToken: token });
 
       setUser({
-        id: user.id,
-        name: user.name,
-        role: user.role
+        cod_empleado: user.cod_empleado,
+        usuario: user.usuario,
+        rol: user.rol
       });
 
       throw redirect({

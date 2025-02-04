@@ -5,11 +5,11 @@ import { dbManager } from './config/database';
 import { initializeMiddlewares } from './middlewares/index';
 import { initializeRoutes } from './routes';
 import { errorHandler } from './middlewares/errorHandler';
-import { Connection } from 'mongoose';
+import { Connection } from 'pg';
 
 export default class Server {
   private app: Application;
-  private mongoConnection: Connection | null = null;
+  private postgresConnection: Connection | null = null;
 
   constructor() {
     // Log síncrono inmediato
@@ -32,41 +32,14 @@ export default class Server {
       await dbManager.initialize();
       await dbManager.connect();
       
-      this.mongoConnection = await dbManager.getConnection('mongo', 'default');
-      
-      if (this.mongoConnection) {
-        this.mongoConnection.on('connected', () => {
-          Logger.ok('Instance connected to MongoDB');
-        });
-
-        this.mongoConnection.on('error', (error) => {
-          Logger.error(`MongoDB error: ${error.message}`);
-        });
-
-        this.mongoConnection.on('disconnected', () => {
-          Logger.error('MongoDB disconnected');
-        });
-
-        if (this.mongoConnection.readyState !== 1) {
-          await new Promise<void>((resolve, reject) => {
-            const timeout = setTimeout(() => {
-              reject(new Error('MongoDB connection timeout'));
-            }, 10000);
-
-            this.mongoConnection!.on('connected', () => {
-              clearTimeout(timeout);
-              resolve();
-            });
-
-            this.mongoConnection!.on('error', (error) => {
-              clearTimeout(timeout);
-              reject(error);
-            });
-          });
-        }
+      this.postgresConnection = dbManager.getConnection('postgres');
+      if (this.postgresConnection) {
+        Logger.ok('PostgreSQL connected');
       }
+
+      Logger.ok('Databases initialized');
     } catch (error) {
-      Logger.error((error as Error).message);
+      Logger.error('Failed to initialize databases:', error);
       throw error;
     }
   }
@@ -78,7 +51,7 @@ export default class Server {
       
       const server = this.app.listen(environment.PORT, () => {
         Logger.ok(`Server running on port ${environment.PORT} - ${environment.NODE_ENV}`);
-        Logger.info(`Health check: GET-http://localhost:${environment.PORT}/ && POST-http://localhost:${environment.PORT}/ { ping:1 }`);
+        Logger.info(`Health check: GET-http://localhost:${environment.PORT}/ && POST-http://localhost:${environment.PORT}/ { pong:1 }`);
         this.logServerInfo();
       });
 
