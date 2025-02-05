@@ -8,11 +8,11 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: ${DB_NAME}
-      POSTGRES_HOST_AUTH_METHOD: trust  # Para desarrollo
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - "5431:5432"
+      - "5433:5432"  # Cambiado el puerto externo
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_2:/var/lib/postgresql/data  # Cambiado el nombre del volume
       - ./migrations:/docker-entrypoint-initdb.d/migrations
       - ./init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
     command: 
@@ -20,11 +20,11 @@ services:
       - "-c"
       - "listen_addresses=*"
     networks:
-      - app-network
+      - app-network-2  # Cambiado el nombre de la red
 
 volumes:
-  postgres_data:
+  postgres_data_2:  # Cambiado el nombre del volume
 
 networks:
-  app-network:
+  app-network-2:  # Cambiado el nombre de la red
     driver: bridge
