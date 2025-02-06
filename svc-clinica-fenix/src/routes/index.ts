@@ -2,6 +2,7 @@ import { Application, Router } from 'express';
 import { healthRoutes } from './health.routes';
 import { userRoutes } from './user.routes';
 import { patientRoutes } from './patient.routes';
+import { quotesRoutes } from './quotes.routes';
 import { ResponseHandler } from '../utils/responses';
 const { sendError } = ResponseHandler;
 
@@ -12,6 +13,7 @@ export const initializeRoutes = (app: Application): void => {
   apiRouter.use('/', healthRoutes);
   apiRouter.use('/users', userRoutes);
   apiRouter.use('/patients', patientRoutes);
+  apiRouter.use('/quotes', quotesRoutes);
   // Agrega aquí otras rutas cuando las crees
   
   // Prefijo global para todas las rutas de API
