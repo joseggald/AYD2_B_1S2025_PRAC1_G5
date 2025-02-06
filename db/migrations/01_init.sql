@@ -1,39 +1,43 @@
- -- db/migrations/01_init.sql
-CREATE TABLE IF NOT EXISTS users (
-    id_user INT PRIMARY KEY,
+-- db/migrations/01_init.sql
+
+-- Tabla de pacientes
+CREATE TABLE IF NOT EXISTS patients (
+    id_patient SERIAL PRIMARY KEY,
     name VARCHAR(150) NOT NULL,
     lastName VARCHAR(150) NOT NULL,
     cui INT UNIQUE NOT NULL,
-    phone INT NOT NULL,
+    phone VARCHAR(20) NOT NULL,  -- Cambié a VARCHAR para los teléfonos
     email VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
     age INT NOT NULL,
     gender VARCHAR(20) NOT NULL,
     income_at DATE NOT NULL
 );
 
+-- Tabla de registros (record)
 CREATE TABLE IF NOT EXISTS record (
-    id_record INT PRIMARY KEY,
-    id_user INT NOT NULL,
-    FOREIGN KEY (id_user) REFERENCES users(id_user) ON DELETE CASCADE
+    id_record SERIAL PRIMARY KEY,  -- Cambié a SERIAL para autoincremento
+    id_patient INT NOT NULL,  -- Reemplazado id_user por id_patient
+    FOREIGN KEY (id_patient) REFERENCES patients(id_patient) ON DELETE CASCADE  -- Cambié la referencia a la tabla patients
 );
 
-
+-- Tabla de citas
 CREATE TABLE IF NOT EXISTS citas (
-    id_citas INT PRIMARY KEY,
+    id_citas SERIAL PRIMARY KEY,  -- Cambié a SERIAL para autoincremento
     id_record INT NOT NULL,
     date DATE NOT NULL,
     hour INT NOT NULL,
     FOREIGN KEY (id_record) REFERENCES record(id_record) ON DELETE CASCADE
 );
 
+-- Tabla de unidades de medida
 CREATE TABLE IF NOT EXISTS unit_measurement (
-    id_unit INT PRIMARY KEY,
+    id_unit SERIAL PRIMARY KEY,  -- Cambié a SERIAL para autoincremento
     unit VARCHAR(50) NOT NULL
 );
 
+-- Tabla de recetas
 CREATE TABLE IF NOT EXISTS recipe (
-    id_recipe INT PRIMARY KEY,
+    id_recipe SERIAL PRIMARY KEY,  -- Cambié a SERIAL para autoincremento
     id_record INT NOT NULL,
     medicine VARCHAR(100) NOT NULL,
     dose INT NOT NULL,
