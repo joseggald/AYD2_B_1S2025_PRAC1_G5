@@ -39,8 +39,8 @@ export class UserController {
         return;
       }
 
-      const { usuario, contrasena } = value;
-      const user = await this.userService.validateUser(usuario, contrasena);
+      const { correo_electronico, contrasena } = value;
+      const user = await this.userService.validateUser(correo_electronico, contrasena);
       
       if (!user) {
         sendError(res, 'Invalid credentials', 401);

@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import { PatientController } from '../controllers/patient.controller';
+import { authMiddleware } from '../middlewares/auth.middleware';
 
 const router = Router();
 const controller = new PatientController();
 
+router.use(authMiddleware)
 router.get('/get/:id', controller.getOne.bind(controller));
 router.get('/getAll', controller.getAll.bind(controller));
 router.post('/create', controller.create.bind(controller));

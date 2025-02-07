@@ -24,32 +24,19 @@ export class UserService {
     try {
       await client.query('BEGIN');
       
-      const { usuario, contrasena, nombres, apellidos, correo_electronico, cod_empleado } = userData;
+      const { nombres, apellidos, correo_electronico, contrasena } = userData;
       
-      // Verificar si el usuario ya existe
-      const existingUser = await client.query(
-        'SELECT usuario FROM usuarios WHERE usuario = $1 OR correo_electronico = $2',
-        [usuario, correo_electronico]
-      );
-
-      if (existingUser.rows.length > 0) {
-        throw new Error('Usuario o correo electrónico ya existe');
-      }
-
       const hashedPassword = await bcrypt.hash(contrasena, 10);
       
       const query = `
-        INSERT INTO usuarios (
-          cod_empleado, usuario, nombres, apellidos, 
-          correo_electronico, contrasena
-        ) VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING cod_empleado, usuario, nombres, apellidos, 
-                  correo_electronico, rol, activo, ts_creacion
+        INSERT INTO users (
+          nombres, apellidos, correo_electronico, contrasena
+        ) VALUES ($1, $2, $3, $4)
+        RETURNING nombres, apellidos, correo_electronico, contrasena 
       `;
       
       const values = [
-        cod_empleado, usuario, nombres, apellidos, 
-        correo_electronico, hashedPassword
+        nombres, apellidos, correo_electronico, hashedPassword
       ];
 
       const result = await client.query(query, values);
@@ -65,17 +52,17 @@ export class UserService {
     }
   }
 
-  public async validateUser(usuario: string, contrasena: string): Promise<any> {
+  public async validateUser(correo_electronico: string, contrasena: string): Promise<any> {
     const pool = this.getConnection();
     const client = await pool.connect();
     
     try {
       const query = `
-        SELECT * FROM usuarios 
-        WHERE usuario = $1 AND activo = true
+        SELECT * FROM users 
+        WHERE correo_electronico = $1
       `;
       
-      const result = await client.query(query, [usuario]);
+      const result = await client.query(query, [correo_electronico]);
       const user = result.rows[0];
 
       if (!user) {
