@@ -1,9 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LoginForm } from "@/features/Login";
 import DefaultLayout from "@/layout/DefaultLayout/DefaultLayout";
+import { createPublicGuard } from "@/utils/functions/guards/public.guard";
 
 export const Route = createFileRoute("/login/")({
   component: RouteComponent,
+  beforeLoad: createPublicGuard({
+    redirectTo: "/home",
+  }),
 });
 
 function RouteComponent() {

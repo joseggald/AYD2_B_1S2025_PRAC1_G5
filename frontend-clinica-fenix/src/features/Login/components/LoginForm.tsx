@@ -33,7 +33,7 @@ export function LoginForm({
             <div className="flex flex-col gap-6">
               <FormField
                 control={form.control}
-                name="userName"
+                name="username"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Usuario</FormLabel>

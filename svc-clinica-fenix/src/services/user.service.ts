@@ -24,20 +24,28 @@ export class UserService {
     try {
       await client.query('BEGIN');
       
-      const { nombres, apellidos, correo_electronico, contrasena } = userData;
+      const { name, lastName, username, email, password } = userData;
       
-      const hashedPassword = await bcrypt.hash(contrasena, 10);
+      // Verificar si el usuario ya existe
+      const existingUser = await client.query(
+        'SELECT user FROM users WHERE username = $1 OR email = $2',
+        [username, email]
+      );
+
+      if (existingUser.rows.length > 0) {
+        throw new Error('Usuario o correo electrónico ya existe');
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
       
       const query = `
         INSERT INTO users (
-          nombres, apellidos, correo_electronico, contrasena
-        ) VALUES ($1, $2, $3, $4)
-        RETURNING nombres, apellidos, correo_electronico, contrasena 
+          name, lastName, username, email, password
+        ) VALUES ($1, $2, $3, $4, $5)
+        RETURNING id,name, lastName, username, email, password
       `;
       
-      const values = [
-        nombres, apellidos, correo_electronico, hashedPassword
-      ];
+      const values = [name, lastName, username, email, hashedPassword];
 
       const result = await client.query(query, values);
       await client.query('COMMIT');
@@ -52,29 +60,29 @@ export class UserService {
     }
   }
 
-  public async validateUser(correo_electronico: string, contrasena: string): Promise<any> {
+  public async validateUser(username: string, password: string): Promise<any> {
     const pool = this.getConnection();
     const client = await pool.connect();
     
     try {
       const query = `
         SELECT * FROM users 
-        WHERE correo_electronico = $1
+        WHERE username = $1
       `;
       
-      const result = await client.query(query, [correo_electronico]);
+      const result = await client.query(query, [username]);
       const user = result.rows[0];
 
       if (!user) {
         return null;
       }
 
-      const isValid = await bcrypt.compare(contrasena, user.contrasena);
+      const isValid = await bcrypt.compare(password, user.password);
       if (!isValid) {
         return null;
       }
 
-      delete user.contrasena;
+      delete user.password;
       return user;
     } catch (error) {
       Logger.error('Error validating user:', error);

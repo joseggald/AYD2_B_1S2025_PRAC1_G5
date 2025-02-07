@@ -16,7 +16,7 @@ export function useLoginForm() {
   const { clearTokens } = useAuthStore();
 
   const formSchema = z.object({
-    userName: z.string().nonempty({
+    username: z.string().nonempty({
       message: "El nombre de usuario es obligatorio.",
     }),
     password: z.string().nonempty({
@@ -32,7 +32,7 @@ export function useLoginForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      userName: loginData?.userName || "",
+      username: loginData?.username || "",
       password: loginData?.password || "",
       rememberMe: loginData?.rememberMe || false,
     },
@@ -47,8 +47,8 @@ export function useLoginForm() {
 
     // authenticate user
     await loginMutation.mutate({
-      usuario: values.userName,
-      contrasena: values.password,
+      username: values.username,
+      password: values.password,
     });
   }
 
