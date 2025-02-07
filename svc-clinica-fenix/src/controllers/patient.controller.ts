@@ -74,4 +74,14 @@ export class PatientController {
       sendError(res, error.message, 400);
     }
   }
+
+  public async getExpedients(req: Request, res: Response): Promise<void> {
+    try {
+      const { parameter } = req.params;
+      const expedients = await this.patientService.getExpedients(parameter);
+      sendSuccess(res, "Expedientes encontrados", { expedients });
+    } catch (error: any) {
+      sendError(res, error.message, 400);
+    }
+  }
 }
