@@ -1,8 +1,8 @@
 import { serviceApi } from "@/services/auth";
 
 export interface ILoginServiceProps {
-  usuario: string;
-  contrasena: string;
+  username: string;
+  password: string;
 }
 
 export interface ILoginServiceResponse {
@@ -17,9 +17,12 @@ export interface IDataLogin {
 }
 
 export interface IUser {
-  cod_empleado: string;
-  usuario: string;
-  rol: string;
+  id: string;
+  name: string;
+  lastName: string;
+  username: string;
+  email: string;
+  role: string;
 }
 
 export const loginService = async (

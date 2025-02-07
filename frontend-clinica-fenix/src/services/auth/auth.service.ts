@@ -4,7 +4,6 @@ import { ERROR_EXPIRED_SESSION_TEXTS } from "@/utils/constants/alerts";
 import { useAuthStore } from "@/store/auth";
 
 const alertStore = useAlertStore.getState();
-
 // Create an Axios instance with base configuration
 const serviceApi = axios.create({
   baseURL: import.meta.env.VITE_API_SERVICE_URL,
@@ -22,7 +21,7 @@ serviceApi.interceptors.request.use(
     if (!authToken) {
       return config;
     }
-
+    
     config.headers.Authorization = `Bearer ${authToken}`;
     return config;
   }
@@ -36,12 +35,13 @@ serviceApi.interceptors.response.use(
       const { logout } = useAuthStore.getState();
 
       alertStore.setTitle(ERROR_EXPIRED_SESSION_TEXTS.title);
-      alertStore.setDescription(ERROR_EXPIRED_SESSION_TEXTS.description);
-      alertStore.setOnCloseCallback(logout);
+      alertStore.setDescription(ERROR_EXPIRED_SESSION_TEXTS.description); 
       alertStore.openAlert();
+      logout();
     }
     return Promise.reject(error);
   }
 );
+
 
 export { serviceApi };

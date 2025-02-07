@@ -8,11 +8,11 @@ import {
 } from "@/features/Login";
 import { isAxiosError } from "axios";
 import { useAuthStore } from "@/store/auth";
-import { redirect } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 
 export const useLoginMutation = () => {
   const { setTokens, setUser } = useAuthStore();
-
+  const navigate = useNavigate();
   return useMutation({
     mutationKey: QUERY_KEYS.AUTH.LOGIN,
     mutationFn: async (props: ILoginServiceProps) => await loginService(props),
@@ -22,20 +22,21 @@ export const useLoginMutation = () => {
       setTokens({ authToken: token });
 
       setUser({
-        cod_empleado: user.cod_empleado,
-        usuario: user.usuario,
-        rol: user.rol
+        id: user.id,
+        name: user.name,
+        lastName: user.lastName,
+        username: user.username,
+        email: user.email,
+        role: user.role
       });
 
-      throw redirect({
-        to: "/home",
-      });
+      navigate({  to:"/home"  });
     },
     onError: (error) => {
       if (isAxiosError(error) && error.response?.status === 401) return;
       toast({
         title: "Error",
-        description: error.message || "Algo salió mal",
+        description: "Error al iniciar sesión: "+error,
         variant: "destructive",
       });
     },

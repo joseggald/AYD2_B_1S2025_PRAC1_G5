@@ -1,13 +1,14 @@
 import Joi from 'joi';
 
 export const createUserSchema = Joi.object({
-  nombres: Joi.string().required(),
-  apellidos: Joi.string().required(),
-  correo_electronico: Joi.string().email().required(),
-  contrasena: Joi.string().required().min(6)
+  name: Joi.string().required(),
+  lastName: Joi.string().required(),
+  username: Joi.string().required(),
+  email: Joi.string().email().required(),
+  password: Joi.string().required().min(6)
 });
 
 export const loginSchema = Joi.object({
-  correo_electronico: Joi.string().required(),
-  contrasena: Joi.string().required()
+  username: Joi.string().required(),
+  password: Joi.string().required()
 });

@@ -39,18 +39,18 @@ export class UserController {
         return;
       }
 
-      const { correo_electronico, contrasena } = value;
-      const user = await this.userService.validateUser(correo_electronico, contrasena);
+      const { username, password } = value;
+      const user = await this.userService.validateUser(username, password);
       
       if (!user) {
-        sendError(res, 'Invalid credentials', 401);
+        sendError(res, 'Usuario no existe o credenciales', 400);
         return;
       }
 
       const token = generateAuthToken(user);
       sendSuccess(res, "¡Login exitoso!", { user, token });
     } catch (error: any) {
-      sendError(res, error.message, 401);
+      sendError(res, error.message, 400);
     }
   }
 
