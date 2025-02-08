@@ -118,3 +118,12 @@ Acceso restringido mediante roles de usuario, control de autenticación segura y
 
 - Pruebas automatizadas.
 
+
+## Justificación del framework y patrón
+
+
+
+
+## Diagrama ER
+![DB](/img/ER.png)
+
