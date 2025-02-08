@@ -22,7 +22,7 @@ export class QuotesService {
         const client = await pool.connect();
 
         try {
-            const quotes = await client.query('SELECT * FROM citas WHERE id_patient = $1', [id]);
+            const quotes = await client.query('SELECT a.*, b.name, b.lastname, b.cui FROM citas AS a JOIN patients AS b ON b.id_patient = a.id_patient WHERE  a.id_patient = $1', [id]);
             return quotes.rows[0];
         } catch (error) {
             Logger.error('Failed to get quotes:', error);
@@ -37,7 +37,7 @@ export class QuotesService {
         const client = await pool.connect();
         
         try {
-            const quotes = await client.query('SELECT * FROM citas');
+            const quotes = await client.query('SELECT a.*, b.name, b.lastname, b.cui FROM citas AS a JOIN patients AS b ON b.id_patient = a.id_patient');
             return quotes.rows;
         } catch (error) {
             Logger.error('Failed to get quotes:', error);
@@ -54,17 +54,17 @@ export class QuotesService {
         try {
             await client.query('BEGIN');
             
-            const { id_record, date, hour } = quote;
+            const { id_patient, date, hour } = quote;
 
             const query = `
                 INSERT INTO citas (
-                id_record, date, hour
+                id_patient, date, hour
                 ) VALUES ($1, $2, $3)
                 RETURNING *
             `;
 
             const values = [
-                id_record,date,hour
+                id_patient,date,hour
             ];
 
             const result = await client.query(query, values);
@@ -87,17 +87,17 @@ export class QuotesService {
         try {
             await client.query('BEGIN');
             
-            const { id_record, date, hour,id_citas } = patient;
+            const { id_patient, date, hour,id_citas } = patient;
 
             const query = `
                 UPDATE citas SET
-                id_record = $1, date = $2, hour = $3
+                id_patient = $1, date = $2, hour = $3
                 WHERE id_citas = $4
                 RETURNING *
             `;
 
             const values = [
-                id_record, date, hour,id_citas 
+                id_patient, date, hour,id_citas 
             ];
 
             const result = await client.query(query, values);

@@ -22,8 +22,8 @@ export class RecipesService {
         const client = await pool.connect();
 
         try {
-            const quotes = await client.query('SELECT * FROM recipe WHERE id_recipe = $1', [id]);
-            return quotes.rows[0];
+            const recipe = await client.query('SELECT  a.*, b.name, b.lastname, b.cui FROM recipe AS a JOIN patients AS b ON b.id_patient = a.id_patient WHERE a.id_recipe = $1', [id]);
+            return recipe.rows[0];
         } catch (error) {
             Logger.error('Failed to get recipes:', error);
             throw new Error('Failed to get recipes');
@@ -37,8 +37,8 @@ export class RecipesService {
         const client = await pool.connect();
         
         try {
-            const quotes = await client.query('SELECT * FROM recipes');
-            return quotes.rows;
+            const recipe = await client.query('SELECT a.*, b.name, b.lastname, b.cui FROM recipe AS a JOIN patients AS b ON b.id_patient = a.id_patient');
+            return recipe.rows;
         } catch (error) {
             Logger.error('Failed to get recipes:', error);
             throw new Error('Failed to get recipes');
@@ -54,20 +54,17 @@ export class RecipesService {
         try {
             await client.query('BEGIN');
             
-            const { id_record, medicine, dose, id_unit_dose, 
-                frequency,id_unit_frequency,indications, doctor_signature} = recipe;
+            const { id_patient, medicine, dose, frequency,indications, doctor_signature} = recipe;
 
             const query = `
-                INSERT INTO recipes (
-                id_record, medicine, dose, id_unit_dose, frequency,id_unit_frequency,
-                indications, doctor_signature
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                INSERT INTO recipe (
+                id_patient, medicine, dose, frequency, indications, doctor_signature
+                ) VALUES ($1, $2, $3, $4, $5, $6)
                 RETURNING *
             `;
 
             const values = [
-                id_record, medicine, dose, id_unit_dose, 
-                frequency,id_unit_frequency,indications, doctor_signature
+                id_patient, medicine, dose, frequency,indications, doctor_signature
             ];
 
             const result = await client.query(query, values);
@@ -90,20 +87,18 @@ export class RecipesService {
         try {
             await client.query('BEGIN');
             
-            const { id_recipe,id_record, medicine, dose, id_unit_dose, 
-                frequency,id_unit_frequency,indications, doctor_signature} = recipe;
+            const { id_recipe,id_patient, medicine, dose, frequency,indications, doctor_signature} = recipe;
 
             const query = `
-                UPDATE citas SET
-                id_record = $2, medicine = $3, dose = $4, id_unit_dose = $5, frequency = $6,
-                id_unit_frequency = $7, indications = $8, doctor_signature = $9
-                WHERE id_citas = $1
+                UPDATE recipe SET
+                id_patient = $2, medicine = $3, dose = $4, frequency = $5,
+                indications = $6, doctor_signature = $7
+                WHERE id_recipe = $1
                 RETURNING *
             `;
 
             const values = [
-                id_recipe, id_record, medicine, dose, id_unit_dose, 
-                frequency,id_unit_frequency,indications, doctor_signature
+                id_recipe,id_patient, medicine, dose, frequency,indications, doctor_signature
             ];
 
             const result = await client.query(query, values);
@@ -126,7 +121,7 @@ export class RecipesService {
 
         try {
             await client.query('BEGIN');
-            const query = 'DELETE FROM recipes WHERE id_recipes = $1';
+            const query = 'DELETE FROM recipe WHERE id_recipe = $1';
             const result = await client.query(query, [id]);
             await client.query('COMMIT');
             return result.rows[0];
