@@ -1,17 +1,23 @@
+// quotes.service.ts
 import { serviceApi } from "@/services/auth";
 
 export interface IQuote {
   id_citas?: number;
-  id_record: number;
+  id_patient: number;
   date: Date;
   hour: number;
+  description: string;
+  // Additional fields from join
+  name?: string;
+  lastname?: string;
+  cui?: string;
 }
 
 export interface IQuoteResponse {
   message: string;
   success: boolean;
   data: {
-    quotes: IQuote;
+    quote: IQuote;
   };
 }
 
@@ -23,7 +29,7 @@ export interface IQuotesResponse {
   };
 }
 
-export const quotesService = {
+export const quoteService = {
   getQuotes: async (): Promise<IQuotesResponse> => {
     const { data } = await serviceApi.get<IQuotesResponse>('/quotes/getAll');
     return data;

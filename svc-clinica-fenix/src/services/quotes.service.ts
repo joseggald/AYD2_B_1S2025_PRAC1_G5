@@ -54,17 +54,17 @@ export class QuotesService {
         try {
             await client.query('BEGIN');
             
-            const { id_patient, date, hour } = quote;
+            const { id_patient, date, hour, description } = quote;
 
             const query = `
                 INSERT INTO citas (
-                id_patient, date, hour
-                ) VALUES ($1, $2, $3)
+                id_patient, date, hour, description
+                ) VALUES ($1, $2, $3, $4)
                 RETURNING *
             `;
 
             const values = [
-                id_patient,date,hour
+                id_patient,date,hour, description
             ];
 
             const result = await client.query(query, values);
@@ -87,17 +87,17 @@ export class QuotesService {
         try {
             await client.query('BEGIN');
             
-            const { id_patient, date, hour,id_citas } = patient;
+            const { id_patient, date, hour,id_citas, description } = patient;
 
             const query = `
                 UPDATE citas SET
-                id_patient = $1, date = $2, hour = $3
-                WHERE id_citas = $4
+                id_patient = $1, date = $2, hour = $3, description = $4
+                WHERE id_citas = $5
                 RETURNING *
             `;
 
             const values = [
-                id_patient, date, hour,id_citas 
+                id_patient, date, hour, description, id_citas 
             ];
 
             const result = await client.query(query, values);

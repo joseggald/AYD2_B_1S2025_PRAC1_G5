@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { IUser } from "@/features";
-import { navigationService } from '../../router';
+
 interface AuthState {
   user: IUser | null;
   authToken: string | null;
@@ -40,7 +40,6 @@ export const useAuthStore = create<AuthState>()(
           authToken: null,
           isAuthenticated: false,
         });
-        navigationService.goToLogin();
       },
     }),
     {

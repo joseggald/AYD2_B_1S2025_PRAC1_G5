@@ -1,4 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { 
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -9,12 +17,17 @@ import {
   DialogDescription 
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, Calendar, FileText } from "lucide-react";
-import { usePatientsStore } from "@/store/dashboard"; 
+import { Plus, Users, Calendar, FileText, UserCircle, LogOut } from "lucide-react";
+import { usePatientsStore, useQuotesStore } from "@/store/dashboard"; 
+import { useAuthStore } from "@/store/auth";
+import { navigationService } from '../../router';
 // Forms
-import { PatientForm } from "@/features";
+import { PatientForm, useQuotes } from "@/features";
 import { PatientList } from "@/features";
 import { IPatient } from "@/features";
+import { QuoteForm } from "@/features";
+import { QuoteList } from "@/features";
+import { IQuote } from "@/features";
 
 type TabType = 'patients' | 'quotes' | 'recipes';
 
@@ -22,13 +35,34 @@ export function DashboardView() {
   const [activeTab, setActiveTab] = useState<TabType>('patients');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<IPatient | null>(null);
+  const [editingQuote, setEditingQuote] = useState<IQuote | null>(null);
+  //endpoints
+  const { data: quotesData } = useQuotes();
+
+  //store
   const totalPatients = usePatientsStore((state) => state.totalPatients);
+  const totalQuotes = useQuotesStore((state) => state.totalQuotes);
+  const { user, logout } = useAuthStore();
+  const fullName = `${user?.name ?? ''} ${user?.lastname ?? ''}`.trim();
+  const usernameDisplay = user?.username ? `@${user.username}` : '';
+
+  useEffect(() => {
+    if (quotesData) {
+      useQuotesStore.getState().setTotalQuotes(quotesData.data.quotes.length);
+    }    
+  }, [quotesData]);
+
+  const logoutAccount = () => {
+    navigationService.goToLogin();
+    logout();
+  }
+
   const getFormTitle = () => {
     switch (activeTab) {
       case 'patients':
         return editingPatient ? 'Editar Paciente' : 'Nuevo Paciente';
       case 'quotes':
-        return 'Nueva Cita';
+        return editingQuote ? 'Editar cita' : 'Nueva Cita';
       case 'recipes':
         return 'Nueva Receta';
     }
@@ -52,13 +86,20 @@ export function DashboardView() {
     setIsDialogOpen(true);
   };
 
+  const handleEditQuote = (quote: IQuote) => {
+    setEditingQuote(quote);
+    setIsDialogOpen(true);
+  }
+
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingPatient(null);
+    setEditingQuote(null);
   };
 
   const handleNewClick = () => {
     setEditingPatient(null);
+    setEditingQuote(null);
     setIsDialogOpen(true);
   };
 
@@ -72,16 +113,85 @@ export function DashboardView() {
           />
         );
       case 'quotes':
-        return <PatientForm onSuccess={handleCloseDialog} />;
+        return (
+          <QuoteForm 
+            onSuccess={handleCloseDialog} 
+            editingQuote={editingQuote}
+          />
+        )
       case 'recipes':
         return <PatientForm onSuccess={handleCloseDialog} />;
     }
   };
+  const ProfileDropdown = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button 
+          variant="ghost" 
+          className="flex items-center gap-2 hover:bg-gray-100 group"
+        >
+          <div className="relative">
+            <UserCircle className="h-7 w-7 text-primary group-hover:text-primary/80 transition-colors" />
+            {user?.role === 'admin' && (
+              <span className="absolute -bottom-1 -right-1 bg-green-500 text-white text-xs px-1 rounded-full">
+                ★
+              </span>
+            )}
+          </div>
+          <div className="hidden sm:block text-left">
+            {fullName && (
+              <p className="text-sm font-medium text-foreground">{fullName}</p>
+            )}
+            {usernameDisplay && (
+              <p className="text-xs text-muted-foreground">{usernameDisplay}</p>
+            )}
+          </div>
+        </Button>
+      </DropdownMenuTrigger>
+      
+      <DropdownMenuContent align="end" className="w-64 p-2">
+        <DropdownMenuLabel className="flex flex-col gap-1 bg-accent/50 rounded-md p-3">
+          {fullName && (
+            <div className="font-medium text-foreground truncate">{fullName}</div>
+          )}
+          <div className="flex flex-col gap-1">
+            {user?.email && (
+              <div className="text-xs text-muted-foreground truncate">
+                ✉️ {user.email}
+              </div>
+            )}
+            {usernameDisplay && (
+              <div className="text-xs text-muted-foreground truncate">
+                👤 {usernameDisplay}
+              </div>
+            )}
+            {user?.role && (
+              <div className="text-xs text-primary mt-1">
+                🛡️ {user.role.toUpperCase()}
+              </div>
+            )}
+          </div>
+        </DropdownMenuLabel>
+        
+        <DropdownMenuSeparator />
+        
+        <DropdownMenuItem
+          onSelect={() => logoutAccount()}
+          className="cursor-pointer focus:bg-red-50 focus:text-red-600 px-3 py-2.5"
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          <span className="font-medium">Cerrar sesión</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Panel de Control</h1>
-      
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Panel de Control</h1>
+        <ProfileDropdown />
+      </div>
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3 mb-6">
         <Card>
@@ -100,11 +210,11 @@ export function DashboardView() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               <Calendar className="h-4 w-4 inline-block mr-2" />
-              Citas Pendientes
+              Citas
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">15</div>
+            <div className="text-2xl font-bold">{totalQuotes}</div>
           </CardContent>
         </Card>
         
@@ -175,7 +285,7 @@ export function DashboardView() {
               <CardTitle>Listado de Citas</CardTitle>
             </CardHeader>
             <CardContent>
-              <PatientList />
+              <QuoteList onEdit={handleEditQuote} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -194,3 +304,4 @@ export function DashboardView() {
     </div>
   );
 }
+

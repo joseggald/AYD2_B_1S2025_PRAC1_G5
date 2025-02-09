@@ -100,3 +100,11 @@ export const useDeletePatientMutation = () => {
     },
   });
 };
+
+export const useExpedient = (cui: string) => {
+  return useQuery({
+    queryKey: QUERY_KEYS.DOCTOR.PATIENTS.EXPEDIENTS(cui),
+    queryFn: () => patientService.getExpedients(cui),
+    enabled: Boolean(cui), // Solo se ejecuta si hay un CUI
+  });
+};

@@ -136,95 +136,57 @@ export class PatientService {
     public async getExpedients(parameter: string): Promise<any> {
         const pool = this.getConnection();
         const client = await pool.connect();
-
+        
         try {
-            // buscamos por cui
-            const expedientsCUI = await client.query(`
-              SELECT
-                p.cui,
-                p.name,
-                p.lastname,
-                p.age,
-                c.id_citas,
-                c.date,
-                c.hour,
-                re.id_recipe,
-                re.medicine,
-                re.dose,
-                um.unit as unit_dose,
-                re.frequency,
-                umf.unit as unit_frequency,
-                re.indications,
-                re.doctor_signature
-            FROM patients p
-            JOIN record r on r.id_patient = p.id_patient
-            JOIN citas c on c.id_record = r.id_record
-            JOIN recipe re on re.id_record = r.id_record
-            JOIN unit_measurement um on um.id_unit = re.id_unit_dose
-            JOIN unit_measurement umf on umf.id_unit = re.id_unit_frequency
-            WHERE p.cui = $1
-            `, [parameter]);
-
-            const expedienteObtenido = expedientsCUI.rows
-
-            const today = new Date().toISOString().split('T')[0];
-
-            const consultas_anteriores = expedienteObtenido
-                .filter(cita => cita.date.toISOString().split('T')[0] < today)
-                .map(cita => ({
-                    id_citas: cita.id_citas,
-                    date: cita.date,
-                    hour: cita.hour
-                }));
-
-            const consultas_futuras = expedienteObtenido
-                .filter(cita => cita.date.toISOString().split('T')[0] >= today)
-                .map(cita => ({
-                    id_citas: cita.id_citas,
-                    date: cita.date,
-                    hour: cita.hour
-                }));
-
-            const recetas_medicas: { 
-                id_recipe: number, 
-                medicine: string,
-                dose: string,
-                unit_dose: number,
-                frequency: number,
-                unit_frequency: number,
-                indications: string,
-                doctor_signature: string
-            }[] = [];
-
-            const recetasSet = new Set();
-
-            expedienteObtenido.forEach(receta => {
-                if (!recetasSet.has(receta.id_recipe)) {
-                    recetasSet.add(receta.id_recipe);
-                    recetas_medicas.push({
-                        id_recipe: receta.id_recipe,
-                        medicine: receta.medicine,
-                        dose: receta.dose,
-                        unit_dose: receta.unit_dose,
-                        frequency: receta.frequency,
-                        unit_frequency: receta.unit_frequency,
-                        indications: receta.indications,
-                        doctor_signature: receta.doctor_signature
-                    });
-                }
-            });
+            const result = await client.query(`SELECT 
+    p.cui,
+    p.name,
+    p.lastname,
+    p.age,
+    
+    -- Información de citas
+    JSONB_AGG(
+        JSONB_BUILD_OBJECT(
+            'id_citas', c.id_citas,
+            'date', c.date,
+            'hour', c.hour,
+            'description', c.description
+        ) ORDER BY c.date DESC, c.hour, c.description DESC
+    ) FILTER (WHERE c.id_citas IS NOT NULL) as citas,
+    
+    -- Información de recetas
+    (
+        SELECT JSONB_AGG(
+            recipe_data ORDER BY recipe_data->>'id_recipe' DESC
+        )
+        FROM (
+            SELECT DISTINCT JSONB_BUILD_OBJECT(
+                'id_recipe', r.id_recipe,
+                'medicine', r.medicine,
+                'dose', r.dose,
+                'frequency', r.frequency,
+                'indications', r.indications,
+                'doctor_signature', r.doctor_signature
+            ) as recipe_data
+            FROM recipe r
+            WHERE r.id_patient = p.id_patient
+        ) subquery
+    ) as recetas
+FROM 
+    patients p
+LEFT JOIN citas c ON 
+    c.id_patient = p.id_patient
+WHERE 
+    p.cui = $1
+GROUP BY 
+    p.cui, p.name, p.lastname, p.age, p.id_patient;`, [parameter]);
             
-            const expedienteResponse = {
-                cui: expedienteObtenido[0].cui,
-                name: expedienteObtenido[0].name,
-                lastname: expedienteObtenido[0].lastname,
-                age: expedienteObtenido[0].age,
-                consultas_anteriores,
-                consultas_futuras,
-                recetas_medicas
-            };
-
-            return expedienteResponse;
+            if (result.rows.length === 0) {
+                throw new Error('Expediente no encontrado');
+            }
+            
+            return result.rows[0]; // Ya viene estructurado como lo necesitas
+            
         } catch (error) {
             Logger.error('Failed to get expedients:', error);
             throw new Error('Failed to get expedients');
