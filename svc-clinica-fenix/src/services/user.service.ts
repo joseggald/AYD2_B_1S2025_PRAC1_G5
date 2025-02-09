@@ -20,12 +20,11 @@ export class UserService {
   public async createUser(userData: any): Promise<any> {
     const pool = this.getConnection();
     const client = await pool.connect();
-    
+    Logger.info("service user", userData);
     try {
       await client.query('BEGIN');
       
       const { name, lastName, username, email, password } = userData;
-      
       // Verificar si el usuario ya existe
       const existingUser = await client.query(
         'SELECT user FROM users WHERE username = $1 OR email = $2',
@@ -42,7 +41,7 @@ export class UserService {
         INSERT INTO users (
           name, lastName, username, email, password
         ) VALUES ($1, $2, $3, $4, $5)
-        RETURNING id,name, lastName, username, email, password
+        RETURNING id, name, lastName, username, email, password
       `;
       
       const values = [name, lastName, username, email, hashedPassword];

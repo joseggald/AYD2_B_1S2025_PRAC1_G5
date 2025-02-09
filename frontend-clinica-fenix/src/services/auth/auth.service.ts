@@ -2,6 +2,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { useAlertStore } from "@/features/GlobalAlert/store";
 import { ERROR_EXPIRED_SESSION_TEXTS } from "@/utils/constants/alerts";
 import { useAuthStore } from "@/store/auth";
+import { navigationService } from '../../router';
 
 const alertStore = useAlertStore.getState();
 // Create an Axios instance with base configuration
@@ -38,6 +39,7 @@ serviceApi.interceptors.response.use(
       alertStore.setDescription(ERROR_EXPIRED_SESSION_TEXTS.description); 
       alertStore.openAlert();
       logout();
+      navigationService.goToLogin();
     }
     return Promise.reject(error);
   }

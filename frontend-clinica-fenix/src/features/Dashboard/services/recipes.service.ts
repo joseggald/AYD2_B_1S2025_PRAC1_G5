@@ -1,22 +1,25 @@
 import { serviceApi } from "@/services/auth";
 
+
 export interface IRecipe {
   id_recipe?: number;
-  id_record: number;
+  id_patient: number;
   medicine: string;
-  dose: number;
-  id_unit_dose: number;
-  frecuency: number;
-  id_unit_frecuency: number;
+  dose: string;
+  frequency: string;
   indications: string;
   doctor_signature: string;
+  // Additional fields from join
+  name?: string;
+  lastname?: string;
+  cui?: string;
 }
 
 export interface IRecipeResponse {
   message: string;
   success: boolean;
   data: {
-    recipes: IRecipe;
+    recipe: IRecipe;
   };
 }
 
@@ -28,7 +31,7 @@ export interface IRecipesResponse {
   };
 }
 
-export const recipesService = {
+export const recipeService = {
   getRecipes: async (): Promise<IRecipesResponse> => {
     const { data } = await serviceApi.get<IRecipesResponse>('/recipes/getAll');
     return data;
@@ -54,4 +57,3 @@ export const recipesService = {
     return data;
   }
 };
-

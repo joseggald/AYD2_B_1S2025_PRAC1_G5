@@ -42,6 +42,38 @@ export interface IPatientsResponse {
   };
 }
 
+export interface IQuoteExpedient {
+  id_citas: number;
+  date: string;
+  hour: number;
+  description: string;
+}
+
+export interface IRecipeExpedient {
+  id_recipe: number;
+  medicine: string;
+  dose: string;
+  frequency: string;
+  indications: string;
+  doctor_signature: string;
+}
+
+export interface IExpedient {
+  cui: string;
+  name: string;
+  lastname: string;
+  age: number;
+  citas: IQuoteExpedient[] | null;
+  recetas: IRecipeExpedient[] | null;
+}
+
+export interface IExpedientResponse {
+  message: string;
+  success: boolean;
+  data: {
+    expedients: IExpedient;
+  };
+}
 export const patientService = {
   getPatients: async (): Promise<IPatientsResponse> => {
     const { data } = await serviceApi.get<IPatientsResponse>('/patients/getAll');
@@ -70,9 +102,8 @@ export const patientService = {
     return data;
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getExpedients: async (parameter: string): Promise<any> => {
-    const { data } = await serviceApi.get(`/patients/getExpedients/${parameter}`);
+  getExpedients: async (parameter: string): Promise<IExpedientResponse> => {
+    const { data } = await serviceApi.get<IExpedientResponse>(`/patients/getExpedients/${parameter}`);
     return data;
   }
 };

@@ -3,6 +3,7 @@ import { UserService } from '../services/user.service';
 import { ResponseHandler } from '../utils/responses';
 import { loginSchema, createUserSchema } from './validators/user.validator';
 import { generateAuthToken } from '../utils/jwt';
+import { Logger } from '../utils/Logger';
 
 const { sendSuccess, sendError } = ResponseHandler;
 
@@ -16,6 +17,8 @@ export class UserController {
   public async create(req: Request, res: Response): Promise<void> {
     try {
       const { error, value } = createUserSchema.validate(req.body);
+      
+      Logger.info('Creating user:', value.username);
       
       if (error) {
         sendError(res, `Validation error: ${error.message}`, 400);
