@@ -120,9 +120,31 @@ Acceso restringido mediante roles de usuario, control de autenticación segura y
 
 
 ## Justificación del framework y patrón
+La elección de React + Vite junto con los patrones Vista-Controlador y Singleton permite que el sistema de gestión de expedientes médicos sea eficiente, escalable y mantenible.
 
+### Framework
+Se utilizó Vite como herramienta de construcción en lugar de Create React App (CRA) por los siguientes motivos:
 
+1. Mayor velocidad en el desarrollo
 
+2. Vite ofrece un tiempo de arranque más rápido en el entorno de desarrollo gracias a su enfoque basado en ES Modules.
+Optimización automática del código
+
+3. Reduce el tamaño de los archivos entregados al cliente, mejorando la velocidad de carga y la eficiencia del sistema.
+Hot Module Replacement (HMR)
+
+4. Permite una actualización en tiempo real de los cambios en el código sin necesidad de recargar la página, acelerando el desarrollo.
+
+### Patrones|
+En el desarrollo del sistema, se implementaron los patrones Vista-Controlador y Singleton, los cuales ayudan a mantener la claridad y eficiencia del código.
+
+1. Patrón Vista-Controlador:  
+El sistema sigue el principio de separación de responsabilidades, organizando la aplicación en capas. Este patrón facilita la escalabilidad y mantenimiento del código al separar la lógica de negocio de la interfaz de usuario.
+Permite reutilizar la lógica en diferentes partes de la aplicación sin necesidad de repetir código.
+
+2. Patrón Singleton:
+Se utilizó el patrón Singleton para garantizar que ciertos módulos críticos del sistema tengan una única instancia en toda la aplicación. Este patrón garantiza un estado único y global para la gestión de datos esenciales como expedientes médicos y citas.
+Mejora la eficiencia en la comunicación con la API.
 
 ## Diagrama ER
 ![DB](/img/ER.png)
