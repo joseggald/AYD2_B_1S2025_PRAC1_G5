@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS citas (
     id_patient INT NOT NULL,
     date DATE NOT NULL,
     hour INT NOT NULL,
+    description VARCHAR(100) NOT NULL,
     FOREIGN KEY (id_patient) REFERENCES patients(id_patient)
 );
 

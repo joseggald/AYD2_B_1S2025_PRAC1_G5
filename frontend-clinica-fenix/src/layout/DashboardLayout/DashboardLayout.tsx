@@ -18,17 +18,19 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Plus, Users, Calendar, FileText, UserCircle, LogOut } from "lucide-react";
-import { usePatientsStore, useQuotesStore } from "@/store/dashboard"; 
+import { usePatientsStore, useQuotesStore, useRecipesStore  } from "@/store/dashboard"; 
 import { useAuthStore } from "@/store/auth";
 import { navigationService } from '../../router';
 // Forms
-import { PatientForm, useQuotes } from "@/features";
+import { PatientForm, useQuotes, useRecipes } from "@/features";
 import { PatientList } from "@/features";
 import { IPatient } from "@/features";
 import { QuoteForm } from "@/features";
 import { QuoteList } from "@/features";
 import { IQuote } from "@/features";
-
+import { RecipeList } from "@/features";
+import { RecipeForm } from "@/features";
+import { IRecipe } from "@/features";
 type TabType = 'patients' | 'quotes' | 'recipes';
 
 export function DashboardView() {
@@ -36,12 +38,15 @@ export function DashboardView() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<IPatient | null>(null);
   const [editingQuote, setEditingQuote] = useState<IQuote | null>(null);
+  const [editingRecipe, setEditingRecipe] = useState<IRecipe | null>(null);
   //endpoints
   const { data: quotesData } = useQuotes();
-
+  const { data: recipesData } = useRecipes();
   //store
   const totalPatients = usePatientsStore((state) => state.totalPatients);
   const totalQuotes = useQuotesStore((state) => state.totalQuotes);
+  const totalRecipes = useRecipesStore((state) => state.totalRecipes);
+
   const { user, logout } = useAuthStore();
   const fullName = `${user?.name ?? ''} ${user?.lastname ?? ''}`.trim();
   const usernameDisplay = user?.username ? `@${user.username}` : '';
@@ -51,6 +56,12 @@ export function DashboardView() {
       useQuotesStore.getState().setTotalQuotes(quotesData.data.quotes.length);
     }    
   }, [quotesData]);
+
+  useEffect(() => {
+    if (recipesData?.data?.recipes) {
+      useRecipesStore.getState().setTotalRecipes(recipesData.data.recipes.length);
+    }
+  }, [recipesData]);
 
   const logoutAccount = () => {
     navigationService.goToLogin();
@@ -64,7 +75,7 @@ export function DashboardView() {
       case 'quotes':
         return editingQuote ? 'Editar cita' : 'Nueva Cita';
       case 'recipes':
-        return 'Nueva Receta';
+        return editingRecipe ? 'Editar Receta' : 'Nueva Receta';
     }
   };
 
@@ -91,15 +102,22 @@ export function DashboardView() {
     setIsDialogOpen(true);
   }
 
+  const handleEditRecipe = (recipe: IRecipe) => {
+    setEditingRecipe(recipe);
+    setIsDialogOpen(true);
+  }
+
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setEditingPatient(null);
     setEditingQuote(null);
+    setEditingRecipe(null);
   };
 
   const handleNewClick = () => {
     setEditingPatient(null);
     setEditingQuote(null);
+    setEditingRecipe(null);
     setIsDialogOpen(true);
   };
 
@@ -120,7 +138,9 @@ export function DashboardView() {
           />
         )
       case 'recipes':
-        return <PatientForm onSuccess={handleCloseDialog} />;
+        return <RecipeForm
+          onSuccess={handleCloseDialog}
+          editingRecipe={editingRecipe} />;
     }
   };
   const ProfileDropdown = () => (
@@ -226,7 +246,7 @@ export function DashboardView() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">45</div>
+            <div className="text-2xl font-bold">{totalRecipes}</div>
           </CardContent>
         </Card>
       </div>
@@ -296,7 +316,7 @@ export function DashboardView() {
               <CardTitle>Listado de Recetas</CardTitle>
             </CardHeader>
             <CardContent>
-              <PatientList />
+              <RecipeList onEdit={handleEditRecipe}/>
             </CardContent>
           </Card>
         </TabsContent>
