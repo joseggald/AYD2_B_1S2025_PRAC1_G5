@@ -12,14 +12,16 @@ export interface ILoginServiceResponse {
 }
 
 export interface IDataLogin {
-  authToken: string;
-  sessionToken: string;
+  token: string;
   user: IUser;
 }
 
 export interface IUser {
   id: string;
   name: string;
+  lastname: string;
+  username: string;
+  email: string;
   role: string;
 }
 
@@ -27,7 +29,7 @@ export const loginService = async (
   props: ILoginServiceProps
 ): Promise<ILoginServiceResponse> => {
   const { data } = await serviceApi.post<ILoginServiceResponse>(
-    "/api/login",
+    "/users/login",
     props
   );
   return data;
