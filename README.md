@@ -119,32 +119,236 @@ Acceso restringido mediante roles de usuario, control de autenticación segura y
 - Pruebas automatizadas.
 
 
-## Justificación del framework y patrón
-La elección de React + Vite junto con los patrones Vista-Controlador y Singleton permite que el sistema de gestión de expedientes médicos sea eficiente, escalable y mantenible.
+### Justificación Técnica del Stack y Patrones
 
-### Framework
-Se utilizó Vite como herramienta de construcción en lugar de Create React App (CRA) por los siguientes motivos:
+#### **Frontend: React + Vite**  
+**Elección del Framework**:  
+```json  
+"react": "^18.3.1",  
+"vite": "^6.0.5"  
+```  
+- **Rendimiento**: Vite optimiza el bundling con ES Modules nativos, reduciendo tiempos de build (~5x más rápido que Webpack).  
+- **Ecosistema Moderno**: Soporte nativo para TypeScript, JSX y CSS Modules.  
+- **React 18**: Concurrent rendering para interfaces fluidas y Suspense para gestión de loading states.  
 
-1. Mayor velocidad en el desarrollo
+**Patrones y Bibliotecas Clave**:  
+1. **Global State (Zustand)**:  
+   ```json  
+   "zustand": "^5.0.3"  
+   ```  
+   - **Justificación**:  
+     - Reemplaza Redux con ~1/10 del boilerplate.  
+     - Integración nativa con React (hooks) y middlewares opcionales.  
+     - Usado para autenticación y datos compartidos (ej: `useAuthStore`).  
 
-2. Vite ofrece un tiempo de arranque más rápido en el entorno de desarrollo gracias a su enfoque basado en ES Modules.
-Optimización automática del código
+2. **Gestión de Datos (React Query)**:  
+   ```json  
+   "@tanstack/react-query": "^5.65.1"  
+   ```  
+   - **Justificación**:  
+     - Cache automática, re-fetching en focus, y deduplicación de queries.  
+     - Simplifica el manejo de estados asíncronos (ej: `useQuotes`).  
 
-3. Reduce el tamaño de los archivos entregados al cliente, mejorando la velocidad de carga y la eficiencia del sistema.
-Hot Module Replacement (HMR)
+3. **UI Componentizada (Radix + Tailwind)**:  
+   ```json  
+   "@radix-ui/react-dialog": "^1.1.6",  
+   "tailwindcss": "^4.0.0"  
+   ```  
+   - **Justificación**:  
+     - Radix: Componentes accesibles y sin estilos impuestos.  
+     - Tailwind: Diseño ágil con utility-first (ej: `<Button className="bg-primary">`).  
 
-4. Permite una actualización en tiempo real de los cambios en el código sin necesidad de recargar la página, acelerando el desarrollo.
+4. **Formularios (React Hook Form + Zod)**:  
+   ```json  
+   "react-hook-form": "^7.54.2",  
+   "zod": "^3.24.1"  
+   ```  
+   - **Justificación**:  
+     - Validación type-safe con Zod (esquemas reutilizables).  
+     - Rendimiento optimizado (evita re-renders innecesarios).  
 
-### Patrones|
-En el desarrollo del sistema, se implementaron los patrones Vista-Controlador y Singleton, los cuales ayudan a mantener la claridad y eficiencia del código.
+---
 
-1. Patrón Vista-Controlador:  
-El sistema sigue el principio de separación de responsabilidades, organizando la aplicación en capas. Este patrón facilita la escalabilidad y mantenimiento del código al separar la lógica de negocio de la interfaz de usuario.
-Permite reutilizar la lógica en diferentes partes de la aplicación sin necesidad de repetir código.
+#### **Backend: TypeScript + Express**  
+**Elección del Stack**:  
+```json  
+"express": "^4.21.1",  
+"typescript": "^5.6.3"  
+```  
+- **TypeScript**:  
+  - Tipado estático para prevenir errores en runtime (ej: `interface IUser`).  
+  - Autocompletado inteligente en servicios y controladores.  
+- **Express**:  
+  - Minimalista y flexible para APIs RESTful.  
+  - Middleware ecosystem (ej: `helmet`, `cors`).  
 
-2. Patrón Singleton:
-Se utilizó el patrón Singleton para garantizar que ciertos módulos críticos del sistema tengan una única instancia en toda la aplicación. Este patrón garantiza un estado único y global para la gestión de datos esenciales como expedientes médicos y citas.
-Mejora la eficiencia en la comunicación con la API.
+**Patrones y Bibliotecas Clave**:  
+1. **Validación (Joi)**:  
+   ```json  
+   "joi": "^17.13.3"  
+   ```  
+   - **Justificación**:  
+     - Schemas declarativos para validar request bodies (ej: `createPatientSchema`).  
+     - Centraliza reglas de negocio (ej: formato de email, campos requeridos).  
+
+2. **Logging (Winston)**:  
+   ```json  
+   "winston": "^3.16.0"  
+   ```  
+   - **Justificación**:  
+     - Logs estructurados con niveles (info, error, debug).  
+     - Integración con transports (archivos, consola, etc.).  
+
+3. **Seguridad (Helmet + Bcrypt)**:  
+   ```json  
+   "helmet": "^8.0.0",  
+   "bcrypt": "^5.1.1"  
+   ```  
+   - **Helmet**: Headers de seguridad (CSP, HSTS).  
+   - **Bcrypt**: Hashing seguro para contraseñas (cost factor ajustable).  
+
+4. **ORM (Mongoose + Postgres/MySQL)**:  
+   ```json  
+   "mongoose": "^8.8.0",  
+   "pg": "^8.13.1"  
+   ```  
+   - **Justificación**:  
+     - Mongoose para MongoDB (schemas, queries type-safe).  
+     - `pg` y `mysql2` para bases relacionales (transacciones ACID).  
+
+
+### Patrones
+
+### Patrones de Diseño Implementados
+
+#### **Backend**  
+1. **MVC (Modelo-Vista-Controlador)**  
+   - **Uso**:  
+     - *Controladores* (`patient.controller.ts`): Gestionan peticiones HTTP y coordinan servicios.  
+     - *Servicios* (`PatientService`): Contienen lógica de negocio (ej: operaciones CRUD).  
+     - *Modelos* (definidos en interfaces como `IUser`): Representan estructuras de datos.  
+   - **Ejemplo**:  
+     ```typescript  
+     // En PatientController.ts  
+     public async create(req: Request, res: Response) {  
+       const { value } = createPatientSchema.validate(req.body); // Validación  
+       const patient = await this.patientService.createPatient(value); // Servicio  
+       sendSuccess(res, "Paciente creado", { patient }); // Respuesta  
+     }  
+     ```  
+
+2. **Validation Layer**  
+   - **Uso**:  
+     - Schemas Joi (`createPatientSchema`) centralizan reglas de validación.  
+     - Separan la lógica de validación de los controladores.  
+   - **Ejemplo**:  
+     ```typescript  
+     // En patient.validator.ts  
+     export const createPatientSchema = Joi.object({  
+       name: Joi.string().required(),  
+       email: Joi.string().email().required()  
+     });  
+     ```  
+
+3. **Singleton**  
+   - **Uso**:  
+     - Conexiones a BD (`dbManager`) y servidor Express (`Server`) como instancias únicas.  
+   - **Ejemplo**:  
+     ```typescript  
+     // En server.ts  
+     private static instance: Server;  
+     public static getInstance(): Server {  
+       if (!Server.instance) Server.instance = new Server();  
+       return Server.instance;  
+     }  
+     ```  
+
+4. **Chain of Responsibility (Middlewares)**  
+   - **Uso**:  
+     - Pipeline de middlewares (`initializeMiddlewares`) para procesar requests.  
+     - `errorHandler` como último eslabón para manejo de errores.  
+   - **Ejemplo**:  
+     ```typescript  
+     // En server.ts  
+     this.app.use(errorHandler); // Middleware final  
+     ```  
+
+---
+
+#### **Frontend**  
+1. **HOC (High-Order Components)**  
+   - **Uso**:  
+     - Para reutilizar lógica de autenticación o carga. Ejemplo hipotético:  
+     ```typescript  
+     const withAuth = (Component) => (props) => {  
+       const { isAuthenticated } = useAuthStore();  
+       return isAuthenticated ? <Component {...props} /> : <Redirect to="/login" />;  
+     };  
+     ```  
+
+2. **Provider Pattern (Global State)**  
+   - **Uso**:  
+     - `useAuthStore` (Zustand) para estado de autenticación global.  
+     - `QueryClientProvider` (React Query) para gestión de caché.  
+   - **Ejemplo**:  
+     ```typescript  
+     // En main.tsx  
+     <QueryClientProvider client={queryClient}>  
+       <RouterProvider router={router} />  
+     </QueryClientProvider>  
+     ```  
+
+3. **Container-Presentational**  
+   - **Uso**:  
+     - `QuoteList.tsx` como contenedor (lógica + fetching).  
+     - Componentes UI (`Table`, `Button`) como presentacionales.  
+   - **Ejemplo**:  
+     ```typescript  
+     // En QuoteList.tsx  
+     const filteredQuotes = useMemo(() => /* ...lógica... */, []);  
+     return <Table>{/* UI pura */}</Table>;  
+     ```  
+
+4. **Observer (Reactividad)**  
+   - **Uso**:  
+     - `useState`/`useEffect` para sincronizar UI con cambios.  
+     - Stores de Zustand notifican cambios a componentes suscritos.  
+
+---
+
+### Patrones Adicionales  
+1. **Factory (Parser de Configs)**  
+   - **Uso**:  
+     - `DatabaseConfigParser` crea configuraciones de BD según variables de entorno.  
+   - **Ejemplo**:  
+     ```typescript  
+     // En parser.ts  
+     static parse(env): DatabaseConfig[] {  
+       if (key.startsWith('MONGO_URL')) return /* Config MongoDB */;  
+       if (key.includes('PG_')) return /* Config Postgres */;  
+     }  
+     ```  
+
+2. **Dependency Injection**  
+   - **Uso**:  
+     - Servicios inyectados en controladores (`PatientController -> PatientService`).  
+   - **Ejemplo**:  
+     ```typescript  
+     export class PatientController {  
+       constructor(private patientService = new PatientService()) {}  
+     }  
+     ```  
+
+3. **Facade (API Client)**  
+   - **Uso**:  
+     - Axios o Fetch wrappers para simplificar llamadas API.  
+   - **Ejemplo hipotético**:  
+     ```typescript  
+     apiClient.get('/patients', { params }); // Unifica manejo de errores/headers  
+     ```  
+
+---
+
 
 ## Diagrama ER
 ![DB](/img/ER.png)
